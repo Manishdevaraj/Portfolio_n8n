@@ -1,0 +1,262 @@
+{
+  "name": "Portfolio",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -540,
+        0
+      ],
+      "id": "d58197e6-be96-4fa7-be92-91daa69cb118",
+      "name": "When chat message received",
+      "webhookId": "b9980a51-db8a-467e-8814-b49710ade4a5"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "=Current time and day: {{ $now }}\n\nYou are Astra, a smart and friendly AI assistant for Manish devaraj designed  help visitors explore Manish Devaraj's portfolio.Provide clear, concise, and engaging responses while keeping interactions professional yet approachable. Assist users with project details, technologies, and any inquiries about Manish's work basd on memory.\n\nIf a user asks any personal question except for gender, politely respond with: 'I’m not allowed to answer this question.' Maintain a professional yet welcoming tone while showcasing Manish's skills and projects effectively.\n\nThe Whole chat should be conversational and in meek tone.\n\n### **Your Recent Memories:**  \n\n{{ $('Merge').item.json.MEMORY }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        700,
+        -20
+      ],
+      "id": "40acf9ce-f869-4991-bc7d-30ed32fd910e",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        640,
+        280
+      ],
+      "id": "e382f739-fae8-4b27-a8ca-0f3a93937c2c",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "MgTUfrwVLMr0c9tP",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1ORjjjdIYWM2dlBc8949E0x1Xe_RRee6gUrTH7qDFwXQ/edit?usp=sharing",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ORjjjdIYWM2dlBc8949E0x1Xe_RRee6gUrTH7qDFwXQ/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -280,
+        180
+      ],
+      "id": "63b8f12e-6101-4bd7-8fcd-75688d32a441",
+      "name": "Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "jVAxSMaK4McFVzy7",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        180,
+        0
+      ],
+      "id": "235e6106-72ba-4063-a56c-db3315fe51e0",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "MEMORY"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        180
+      ],
+      "id": "31a54ea8-f7ff-473a-8082-2c45429e0732",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8cfb0a35-6e8e-4960-aa20-aac800dcb310",
+              "name": "MEMORY",
+              "value": "={{ $json.MEMORY }}",
+              "type": "array"
+            },
+            {
+              "id": "6560af25-91bc-44c5-9be3-e53d21e3157d",
+              "name": "chatInput",
+              "value": "={{ $json.chatInput }}",
+              "type": "string"
+            },
+            {
+              "id": "4ad6973c-6824-44bc-8983-6be67143d7bf",
+              "name": "sessionId",
+              "value": "={{ $json.sessionId }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        420,
+        0
+      ],
+      "id": "cd891e03-22bb-4af5-800f-1a1bd515af70",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        820,
+        280
+      ],
+      "id": "5d66ee32-62e1-4610-a677-7eb614238159",
+      "name": "Window Buffer Memory"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "5cee42d2-c6e1-4b1c-be0a-b2d548422003",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6cc5d0e6fede22e80bb82e6c13d27734829319353731f036d1fb59b7a483b226"
+  },
+  "id": "IGra15wZQBHCc8bU",
+  "tags": []
+}
